@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Запоминалки</title>
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: var(--tg-theme-bg-color, #f4f4f5);
+      --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+      --text-color: var(--tg-theme-text-color, #18181b);
+      --hint-color: var(--tg-theme-hint-color, #71717a);
+      --btn-color: var(--tg-theme-button-color, #2563eb);
+      --btn-text: var(--tg-theme-button-text-color, #ffffff);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 340px;
+      min-height: 200px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease;
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--hint-color);
+      margin-top: 16px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button:active {
+      opacity: 0.8;
+    }
+
+    .btn-fail { background-color: #ef4444; color: #ffffff; }
+    .btn-success { background-color: #22c55e; color: #ffffff; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="card" onclick="flipCard()">
+    <div class="card-title" id="card-text">Загрузка...</div>
+    <div class="hint" id="hint">Нажми, чтобы перевернуть</div>
+  </div>
+
+  <div class="btn-group" id="btn-group" style="display: none;">
+    <button class="btn-fail" onclick="processAnswer(false)">Не помню</button>
+    <button class="btn-success" onclick="processAnswer(true)">Помню</button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    // Тестовый набор карточек (термины по информатике)
+    const deck = [
+      { q: "Сложность быстрой сортировки (QuickSort) в среднем", a: "O(n log n)" },
+      { q: "Принцип работы стек-структуры (Stack)", a: "LIFO (Last In, First Out)" },
+      { q: "Принцип работы очереди (Queue)", a: "FIFO (First In, First Out)" },
+      { q: "Сложность поиска элемента в хэш-таблице", a: "O(1) в среднем" }
+    ];
+
+    let currentIndex = 0;
+    let isFlipped = false;
+
+    function renderCard() {
+      if (currentIndex >= deck.length) {
+        document.getElementById('card-text').innerText = "🎉 Все карточки пройдены!";
+        document.getElementById('hint').innerText = "Отличная работа";
+        document.getElementById('btn-group').style.display = 'none';
+        return;
+      }
+
+      isFlipped = false;
+      document.getElementById('card-text').innerText = deck[currentIndex].q;
+      document.getElementById('hint').innerText = "Нажми, чтобы показать ответ";
+      document.getElementById('btn-group').style.display = 'none';
+    }
+
+    function flipCard() {
+      if (currentIndex >= deck.length || isFlipped) return;
+      isFlipped = true;
+      document.getElementById('card-text').innerText = deck[currentIndex].a;
+      document.getElementById('hint').innerText = "Оцени результат:";
+      document.getElementById('btn-group').style.display = 'flex';
+    }
+
+    function processAnswer(remembered) {
+      if (!remembered) {
+        // Перемещаем невыученную карточку в конец списка
+        const currentCard = deck.splice(currentIndex, 1)[0];
+        deck.push(currentCard);
+      } else {
+        currentIndex++;
+      }
+      renderCard();
+    }
+
+    renderCard();
+  </script>
+</body>
+</html>
