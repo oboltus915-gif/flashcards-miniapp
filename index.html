@@ -15,13 +15,10 @@
       --btn-text: var(--tg-theme-button-text-color, #ffffff);
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
       margin: 0;
@@ -51,7 +48,6 @@
       font-size: 11px;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: all 0.2s ease;
     }
 
     .nav-btn.active {
@@ -67,9 +63,7 @@
       align-items: center;
     }
 
-    .view.active {
-      display: flex !important;
-    }
+    .view.active { display: flex !important; }
 
     .filter-bar {
       width: 100%;
@@ -79,12 +73,7 @@
       margin-bottom: 12px;
     }
 
-    .filter-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--hint-color);
-      white-space: nowrap;
-    }
+    .filter-label { font-size: 12px; font-weight: 600; color: var(--hint-color); }
 
     select, input, textarea {
       width: 100%;
@@ -103,7 +92,7 @@
       border-radius: 16px;
       padding: 24px 16px;
       width: 100%;
-      min-height: 220px;
+      min-height: 200px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
@@ -113,11 +102,6 @@
       cursor: pointer;
       user-select: none;
       position: relative;
-      transition: transform 0.1s ease;
-    }
-
-    .card:active {
-      transform: scale(0.98);
     }
 
     .card-group-tag {
@@ -144,56 +128,22 @@
       font-weight: 600;
     }
 
-    .card-title {
-      font-size: 22px;
-      font-weight: 700;
-      word-break: break-word;
-      margin-top: 12px;
-    }
+    .card-title { font-size: 22px; font-weight: 700; word-break: break-word; margin-top: 12px; }
+    .hint { font-size: 13px; color: var(--hint-color); margin-top: 16px; }
 
-    .hint {
-      font-size: 13px;
-      color: var(--hint-color);
-      margin-top: 16px;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-      width: 100%;
-    }
+    .btn-group { display: flex; gap: 12px; margin-top: 16px; width: 100%; }
 
     button.action-btn {
-      flex: 1;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
+      flex: 1; padding: 14px; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
     }
 
     .btn-fail { background-color: #ef4444; color: #ffffff; }
     .btn-success { background-color: #22c55e; color: #ffffff; }
     .btn-primary { background-color: var(--btn-color); color: var(--btn-text); width: 100%; margin-top: 8px; }
 
-    .input-group {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .inline-msg {
-      font-size: 12px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      margin-top: 4px;
-      text-align: center;
-      display: none;
-      font-weight: 600;
-    }
+    .input-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .inline-msg { font-size: 12px; padding: 10px; border-radius: 8px; text-align: center; display: none; font-weight: 600; }
 
     .stats-card {
       background: var(--card-bg);
@@ -205,20 +155,14 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 
     .stat-num { font-size: 20px; font-weight: 700; color: var(--btn-color); }
     .stat-num.red { color: #ef4444; }
     .stat-num.green { color: #22c55e; }
-    .stat-desc { font-size: 11px; color: var(--hint-color); margin-top: 2px; }
+    .stat-desc { font-size: 11px; color: var(--hint-color); }
 
-    .card-list {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .card-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
 
     .list-item {
       background: var(--card-bg);
@@ -227,56 +171,18 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     }
 
-    .list-item-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      max-width: 75%;
-    }
+    .list-item-info { display: flex; flex-direction: column; gap: 2px; max-width: 75%; }
+    .list-item-q { font-weight: 700; font-size: 14px; }
+    .list-item-a { font-size: 12px; color: var(--hint-color); }
+    .list-item-meta { font-size: 10px; color: var(--hint-color); margin-top: 4px; display: flex; gap: 8px; }
 
-    .list-item-q { font-weight: 700; font-size: 14px; word-break: break-word; }
-    .list-item-a { font-size: 12px; color: var(--hint-color); word-break: break-word; }
-    .list-item-meta { font-size: 10px; color: var(--hint-color); margin-top: 4px; display: flex; gap: 8px; align-items: center; }
-
-    .tag {
-      background: rgba(37, 99, 235, 0.08);
-      color: var(--btn-color);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-
-    .delete-btn {
-      background: #fee2e2;
-      color: #dc2626;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 11px;
-    }
-
-    #debug-box {
-      display: none;
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 11px;
-      margin-bottom: 10px;
-      width: 100%;
-      max-width: 400px;
-      word-break: break-all;
-    }
+    .tag { background: rgba(37, 99, 235, 0.08); color: var(--btn-color); padding: 2px 6px; border-radius: 4px; }
+    .delete-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 11px; }
   </style>
 </head>
 <body>
-
-  <div id="debug-box"></div>
 
   <!-- Навигация -->
   <div class="nav">
@@ -295,7 +201,7 @@
       </select>
     </div>
 
-    <div class="card" id="card" onclick="flipCard()">
+    <div class="card" id="card-box" onclick="flipCard()">
       <div class="card-group-tag" id="card-group-tag">Общие</div>
       <div class="card-badge" id="card-badge">✓ 0 | ✗ 0</div>
       <div class="card-title" id="card-text">Привет!</div>
@@ -311,338 +217,4 @@
   <!-- Вкладка 2: Добавление -->
   <div id="add-view" class="view">
     <div class="input-group">
-      <label style="font-size: 11px; font-weight: 600; color: var(--hint-color);">Группа по умолчанию:</label>
-      <select id="add-group-select" onchange="toggleNewGroupInput()">
-        <option value="Общие">Общие</option>
-        <option value="Английский">Английский</option>
-        <option value="Информатика">Информатика</option>
-        <option value="__new__">+ Создать новую группу...</option>
-      </select>
-      <input type="text" id="new-group-input" placeholder="Название новой группы" style="display:none;" />
-
-      <label style="font-size: 11px; color: var(--hint-color); margin-top: 4px;">
-        Ввод слов (построчно):<br>
-        <b>Слово : Перевод</b> &nbsp;или&nbsp; <b>Группа : Слово : Перевод</b>
-      </label>
-      <textarea id="input-batch" rows="6" placeholder="Apple : Яблоко&#10;Информатика : QuickSort : Быстрая сортировка&#10;Cat : Кот"></textarea>
-      
-      <button class="action-btn btn-primary" onclick="addCardsBatch()">Сохранить карточки</button>
-      <div id="inline-status" class="inline-msg"></div>
-    </div>
-  </div>
-
-  <!-- Вкладка 3: Все карточки -->
-  <div id="list-view" class="view">
-    <div class="card-list" id="card-list"></div>
-  </div>
-
-  <!-- Вкладка 4: Статистика -->
-  <div id="completed-view" class="view">
-    <div class="stats-card">
-      <div>
-        <div class="stat-num" id="stat-total">0</div>
-        <div class="stat-desc">Всего слов</div>
-      </div>
-      <div>
-        <div class="stat-num green" id="stat-done">0</div>
-        <div class="stat-desc">Верных (✓)</div>
-      </div>
-      <div>
-        <div class="stat-num red" id="stat-wrong">0</div>
-        <div class="stat-desc">Ошибок (✗)</div>
-      </div>
-    </div>
-    <div class="card-list" id="completed-list"></div>
-  </div>
-
-  <script>
-    const DEFAULT_CARD = {
-      id: 1,
-      q: "Привет!",
-      a: "Привет! Нажми «➕ Добавить», чтобы добавить свои слова.",
-      group: "Общие",
-      count: 0,
-      wrongCount: 0
-    };
-
-    try {
-      if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-      }
-    } catch(e) {}
-
-    const memStore = {};
-
-    function getStorage(key) {
-      try {
-        if (window.localStorage) {
-          const val = localStorage.getItem(key);
-          if (val) return JSON.parse(val);
-        }
-      } catch (e) {}
-      return memStore[key] || null;
-    }
-
-    function setStorage(key, val) {
-      memStore[key] = val;
-      try {
-        if (window.localStorage) {
-          localStorage.setItem(key, JSON.stringify(val));
-        }
-      } catch (e) {}
-    }
-
-    let deck = [];
-    let currentStudyGroup = 'all';
-    let currentIndex = 0;
-    let isFlipped = false;
-
-    function ensureMinDeck() {
-      if (!Array.isArray(deck) || deck.length === 0) {
-        deck = [ JSON.parse(JSON.stringify(DEFAULT_CARD)) ];
-      }
-    }
-
-    function initDeck() {
-      const loaded = getStorage('my_flashcards');
-      if (Array.isArray(loaded) && loaded.length > 0) {
-        deck = loaded;
-      } else {
-        deck = [ JSON.parse(JSON.stringify(DEFAULT_CARD)) ];
-      }
-      ensureMinDeck();
-      saveDeck();
-    }
-
-    function saveDeck() {
-      ensureMinDeck();
-      setStorage('my_flashcards', deck);
-      updateCounters();
-      updateGroupSelects();
-    }
-
-    function getGroups() {
-      const set = new Set(["Общие", "Английский", "Информатика"]);
-      deck.forEach(c => { if (c.group) set.add(c.group); });
-      return Array.from(set);
-    }
-
-    function updateGroupSelects() {
-      const groups = getGroups();
-      
-      const filterSelect = document.getElementById('study-group-filter');
-      if (filterSelect) {
-        const prevVal = filterSelect.value || 'all';
-        filterSelect.innerHTML = '<option value="all">Все группы</option>';
-        groups.forEach(g => {
-          filterSelect.innerHTML += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`;
-        });
-        filterSelect.value = groups.includes(prevVal) ? prevVal : 'all';
-        currentStudyGroup = filterSelect.value;
-      }
-
-      const addSelect = document.getElementById('add-group-select');
-      if (addSelect) {
-        const prevAddVal = addSelect.value;
-        addSelect.innerHTML = '';
-        groups.forEach(g => {
-          addSelect.innerHTML += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`;
-        });
-        addSelect.innerHTML += '<option value="__new__">+ Создать новую группу...</option>';
-        if (prevAddVal && (groups.includes(prevAddVal) || prevAddVal === '__new__')) {
-          addSelect.value = prevAddVal;
-        }
-      }
-    }
-
-    function updateCounters() {
-      const doneCards = deck.filter(c => c.count > 0);
-      const elTotal = document.getElementById('count-total');
-      const elDone = document.getElementById('count-done');
-      if (elTotal) elTotal.innerText = deck.length;
-      if (elDone) elDone.innerText = doneCards.length;
-    }
-
-    function getFilteredDeck() {
-      if (currentStudyGroup === 'all') return deck;
-      return deck.filter(c => c.group === currentStudyGroup);
-    }
-
-    function changeStudyGroup() {
-      const sel = document.getElementById('study-group-filter');
-      if (sel) currentStudyGroup = sel.value;
-      currentIndex = 0;
-      renderCard();
-    }
-
-    // Универсальное переключение вкладок
-    function switchTab(tabName) {
-      const navBtns = document.querySelectorAll('.nav-btn');
-      const views = document.querySelectorAll('.view');
-
-      navBtns.forEach(btn => {
-        if (btn.getAttribute('data-tab') === tabName) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-
-      views.forEach(view => {
-        if (view.id === tabName + '-view') {
-          view.classList.add('active');
-        } else {
-          view.classList.remove('active');
-        }
-      });
-
-      if (tabName === 'study') renderCard();
-      else if (tabName === 'list') renderList();
-      else if (tabName === 'completed') renderCompleted();
-    }
-
-    function renderCard() {
-      ensureMinDeck();
-      const filtered = getFilteredDeck();
-
-      const elText = document.getElementById('card-text');
-      const elHint = document.getElementById('hint');
-      const elBadge = document.getElementById('card-badge');
-      const elTag = document.getElementById('card-group-tag');
-      const elBtns = document.getElementById('btn-group');
-
-      if (!elText) return;
-
-      if (filtered.length === 0) {
-        elText.innerText = "Нет слов в группе";
-        if (elHint) elHint.innerText = "Выберите 'Все группы' или добавьте новые слова";
-        if (elBadge) elBadge.style.display = 'none';
-        if (elTag) elTag.style.display = 'none';
-        if (elBtns) elBtns.style.display = 'none';
-        return;
-      }
-
-      if (currentIndex >= filtered.length) {
-        currentIndex = 0;
-      }
-
-      const card = filtered[currentIndex];
-      isFlipped = false;
-
-      if (elBadge) {
-        elBadge.style.display = 'block';
-        elBadge.innerText = `✓ ${card.count} | ✗ ${card.wrongCount}`;
-      }
-
-      if (elTag) {
-        elTag.style.display = 'block';
-        elTag.innerText = card.group;
-      }
-
-      elText.innerText = card.q;
-      if (elHint) elHint.innerText = "Нажми, чтобы перевернуть";
-      if (elBtns) elBtns.style.display = 'none';
-    }
-
-    function flipCard() {
-      const filtered = getFilteredDeck();
-      if (filtered.length === 0 || isFlipped) return;
-
-      isFlipped = true;
-      document.getElementById('card-text').innerText = filtered[currentIndex].a;
-      document.getElementById('hint').innerText = "Оцени результат:";
-      document.getElementById('btn-group').style.display = 'flex';
-    }
-
-    function processAnswer(remembered) {
-      const filtered = getFilteredDeck();
-      if (filtered.length === 0) return;
-
-      const currentCard = filtered[currentIndex];
-      const realIndex = deck.findIndex(c => c.id === currentCard.id);
-
-      if (realIndex !== -1) {
-        if (remembered) {
-          deck[realIndex].count += 1;
-          currentIndex++;
-        } else {
-          deck[realIndex].wrongCount += 1;
-          const item = deck.splice(realIndex, 1)[0];
-          deck.push(item);
-        }
-        saveDeck();
-      }
-
-      renderCard();
-    }
-
-    function toggleNewGroupInput() {
-      const select = document.getElementById('add-group-select');
-      const input = document.getElementById('new-group-input');
-      if (select && input) {
-        input.style.display = (select.value === '__new__') ? 'block' : 'none';
-      }
-    }
-
-    function addCardsBatch() {
-      const textEl = document.getElementById('input-batch');
-      if (!textEl) return;
-      const text = textEl.value.trim();
-      let defaultGroup = document.getElementById('add-group-select').value;
-
-      if (defaultGroup === '__new__') {
-        defaultGroup = document.getElementById('new-group-input').value.trim() || "Общие";
-      }
-
-      if (!text) {
-        showStatus("Введите хотя бы одну строку", false);
-        return;
-      }
-
-      const lines = text.split('\n');
-      let addedCount = 0;
-      let dupCount = 0;
-
-      lines.forEach(line => {
-        const parts = line.split(':').map(p => p.trim()).filter(Boolean);
-        let group = defaultGroup;
-        let q = "";
-        let a = "";
-
-        if (parts.length === 2) {
-          q = parts[0];
-          a = parts[1];
-        } else if (parts.length >= 3) {
-          group = parts[0];
-          q = parts[1];
-          a = parts.slice(2).join(':');
-        }
-
-        if (q && a) {
-          const exists = deck.some(c => c.q.toLowerCase() === q.toLowerCase() && c.group.toLowerCase() === group.toLowerCase());
-          if (!exists) {
-            deck.push({
-              id: Date.now() + Math.random(),
-              q: q,
-              a: a,
-              group: group,
-              count: 0,
-              wrongCount: 0
-            });
-            addedCount++;
-          } else {
-            dupCount++;
-          }
-        }
-      });
-
-      saveDeck();
-      textEl.value = '';
-      if (document.getElementById('add-group-select').value === '__new__') {
-        document.getElementById('new-group-input').value = '';
-      }
-
-      let msg = `Добавлено: ${addedCount}`;
-      if (dupCount > 0) msg += ` (Пропущено повторов: ${dupCount})`;
-      show
+      <label style="font-size: 11px; font-weight: 600; color: var(--hint-color);">Г
