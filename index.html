@@ -31,21 +31,21 @@
     /* Навигационные вкладки */
     .nav {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       width: 100%;
-      max-width: 360px;
-      margin-bottom: 20px;
+      max-width: 380px;
+      margin-bottom: 16px;
     }
 
     .nav-btn {
       flex: 1;
-      padding: 10px 4px;
+      padding: 8px 2px;
       border: none;
       border-radius: 10px;
       background: var(--card-bg);
       color: var(--text-color);
       font-weight: 600;
-      font-size: 13px;
+      font-size: 11px;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       transition: all 0.2s;
@@ -59,7 +59,7 @@
     .view {
       display: none;
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       flex-direction: column;
       align-items: center;
     }
@@ -85,6 +85,7 @@
       cursor: pointer;
       user-select: none;
       transition: transform 0.15s ease;
+      position: relative;
     }
 
     .card:active {
@@ -95,6 +96,17 @@
       font-size: 20px;
       font-weight: 700;
       word-break: break-word;
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 11px;
+      background: rgba(0,0,0,0.05);
+      padding: 4px 8px;
+      border-radius: 8px;
+      color: var(--hint-color);
     }
 
     .hint {
@@ -132,7 +144,7 @@
       gap: 12px;
     }
 
-    input, textarea {
+    textarea {
       width: 100%;
       box-sizing: border-box;
       padding: 14px;
@@ -140,21 +152,57 @@
       border: 1px solid rgba(0, 0, 0, 0.1);
       background: var(--card-bg);
       color: var(--text-color);
-      font-size: 15px;
+      font-size: 14px;
       outline: none;
+      resize: vertical;
+      font-family: inherit;
     }
 
-    /* Список карточек */
+    .inline-msg {
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+      text-align: center;
+      display: none;
+    }
+
+    /* Статистика и списки */
+    .stats-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .stat-num {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--btn-color);
+    }
+
+    .stat-desc {
+      font-size: 11px;
+      color: var(--hint-color);
+      margin-top: 2px;
+    }
+
     .card-list {
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .list-item {
       background: var(--card-bg);
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-radius: 12px;
       display: flex;
       justify-content: space-between;
@@ -165,22 +213,23 @@
     .list-item-info {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      max-width: 80%;
+      gap: 2px;
+      max-width: 75%;
     }
 
-    .list-item-q { font-weight: 700; font-size: 15px; }
-    .list-item-a { font-size: 13px; color: var(--hint-color); }
+    .list-item-q { font-weight: 700; font-size: 14px; }
+    .list-item-a { font-size: 12px; color: var(--hint-color); }
+    .list-item-meta { font-size: 10px; color: var(--btn-color); margin-top: 2px; }
 
     .delete-btn {
       background: #fee2e2;
       color: #dc2626;
       border: none;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11px;
     }
   </style>
 </head>
@@ -190,12 +239,14 @@
   <div class="nav">
     <button class="nav-btn active" onclick="switchTab('study')">🎴 Учить</button>
     <button class="nav-btn" onclick="switchTab('add')">➕ Добавить</button>
-    <button class="nav-btn" onclick="switchTab('list')">📚 Список (<span id="count">0</span>)</button>
+    <button class="nav-btn" onclick="switchTab('list')">📚 Всего (<span id="count-total">0</span>)</button>
+    <button class="nav-btn" onclick="switchTab('completed')">📊 Изучено (<span id="count-done">0</span>)</button>
   </div>
 
   <!-- Вкладка 1: Обучение -->
   <div id="study-view" class="view active">
     <div class="card" id="card" onclick="flipCard()">
+      <div class="card-badge" id="card-badge">Учено: 0 раз</div>
       <div class="card-title" id="card-text">Загрузка...</div>
       <div class="hint" id="hint">Нажми, чтобы перевернуть</div>
     </div>
@@ -209,152 +260,24 @@
   <!-- Вкладка 2: Добавление -->
   <div id="add-view" class="view">
     <div class="input-group">
-      <input type="text" id="input-q" placeholder="Слово / Термин / Вопрос" />
-      <textarea id="input-a" rows="3" placeholder="Перевод / Определение / Ответ"></textarea>
-      <button class="action-btn btn-primary" onclick="addCard()">Сохранить карточку</button>
+      <label style="font-size: 12px; color: var(--hint-color);">
+        Вводи по одному слову или пачкой (каждая пара с новой строки):<br>
+        <b>слово:перевод</b>
+      </label>
+      <textarea id="input-batch" rows="6" placeholder="Apple: Яблоко&#10;Algorithm: Алгоритм&#10;Cat: Кот"></textarea>
+      
+      <button class="action-btn btn-primary" onclick="addCardsBatch()">Сохранить карточки</button>
+      <div id="inline-status" class="inline-msg"></div>
     </div>
   </div>
 
-  <!-- Вкладка 3: Мои карточки -->
+  <!-- Вкладка 3: Все карточки -->
   <div id="list-view" class="view">
     <div class="card-list" id="card-list"></div>
   </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-
-    // Начальные карточки (если пользователь еще ничего не добавил)
-    const defaultDeck = [
-      { q: "Apple", a: "Яблоко" },
-      { q: "Algorithm", a: "Четкий набор инструкций для выполнения задачи" },
-      { q: "QuickSort", a: "Быстрая сортировка O(n log n)" }
-    ];
-
-    // Загрузка сохраненных карточек
-    let deck = JSON.parse(localStorage.getItem('my_flashcards')) || defaultDeck;
-    let currentIndex = 0;
-    let isFlipped = false;
-
-    function saveDeck() {
-      localStorage.setItem('my_flashcards', JSON.stringify(deck));
-      document.getElementById('count').innerText = deck.length;
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-
-      if (tab === 'study') {
-        document.querySelectorAll('.nav-btn')[0].classList.add('active');
-        document.getElementById('study-view').classList.add('active');
-        renderCard();
-      } else if (tab === 'add') {
-        document.querySelectorAll('.nav-btn')[1].classList.add('active');
-        document.getElementById('add-view').classList.add('active');
-      } else if (tab === 'list') {
-        document.querySelectorAll('.nav-btn')[2].classList.add('active');
-        document.getElementById('list-view').classList.add('active');
-        renderList();
-      }
-    }
-
-    // Режим карточек
-    function renderCard() {
-      if (deck.length === 0) {
-        document.getElementById('card-text').innerText = "У вас нет карточек";
-        document.getElementById('hint').innerText = "Перейдите во вкладку 'Добавить', чтобы создать первую карточку";
-        document.getElementById('btn-group').style.display = 'none';
-        return;
-      }
-
-      if (currentIndex >= deck.length) {
-        currentIndex = 0;
-      }
-
-      isFlipped = false;
-      document.getElementById('card-text').innerText = deck[currentIndex].q;
-      document.getElementById('hint').innerText = "Нажми, чтобы показать ответ";
-      document.getElementById('btn-group').style.display = 'none';
-    }
-
-    function flipCard() {
-      if (deck.length === 0 || isFlipped) return;
-      isFlipped = true;
-      document.getElementById('card-text').innerText = deck[currentIndex].a;
-      document.getElementById('hint').innerText = "Оцени результат:";
-      document.getElementById('btn-group').style.display = 'flex';
-    }
-
-    function processAnswer(remembered) {
-      if (!remembered) {
-        // Переставляем сложную карточку в конец
-        const item = deck.splice(currentIndex, 1)[0];
-        deck.push(item);
-      } else {
-        currentIndex++;
-      }
-      renderCard();
-    }
-
-    // Добавление новой карточки
-    function addCard() {
-      const q = document.getElementById('input-q').value.trim();
-      const a = document.getElementById('input-a').value.trim();
-
-      if (!q || !a) {
-        tg.showAlert("Заполните оба поля!");
-        return;
-      }
-
-      deck.push({ q, a });
-      saveDeck();
-
-      document.getElementById('input-q').value = '';
-      document.getElementById('input-a').value = '';
-
-      tg.showAlert("Карточка успешно добавлена!");
-      switchTab('study');
-    }
-
-    // Список и удаление
-    function renderList() {
-      const listContainer = document.getElementById('card-list');
-      listContainer.innerHTML = '';
-
-      if (deck.length === 0) {
-        listContainer.innerHTML = '<div style="text-align:center; color: var(--hint-color);">Список пуст</div>';
-        return;
-      }
-
-      deck.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `
-          <div class="list-item-info">
-            <div class="list-item-q">${escapeHtml(item.q)}</div>
-            <div class="list-item-a">${escapeHtml(item.a)}</div>
-          </div>
-          <button class="delete-btn" onclick="deleteCard(${index})">Удалить</button>
-        `;
-        listContainer.appendChild(div);
-      });
-    }
-
-    function deleteCard(index) {
-      deck.splice(index, 1);
-      saveDeck();
-      renderList();
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // Инициализация
-    saveDeck();
-    renderCard();
-  </script>
-</body>
-</html>
+  <!-- Вкладка 4: Выполненные / Изученные -->
+  <div id="completed-view" class="view">
+    <div class="stats-card">
+      <div>
+        <div class="stat-num" id="stat-total">0</div>
