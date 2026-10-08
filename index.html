@@ -296,10 +296,10 @@
     </div>
 
     <div class="card" id="card" onclick="flipCard()">
-      <div class="card-group-tag" id="card-group-tag" style="display:none;">Группа</div>
-      <div class="card-badge" id="card-badge" style="display:none;">✓ 0 | ✗ 0</div>
-      <div class="card-title" id="card-text">Инициализация...</div>
-      <div class="hint" id="hint">Подождите...</div>
+      <div class="card-group-tag" id="card-group-tag">Общие</div>
+      <div class="card-badge" id="card-badge">✓ 0 | ✗ 0</div>
+      <div class="card-title" id="card-text">Привет!</div>
+      <div class="hint" id="hint">Нажми, чтобы перевернуть</div>
     </div>
 
     <div class="btn-group" id="btn-group" style="display: none;">
@@ -356,17 +356,17 @@
   </div>
 
   <script>
-    // 1. Глобальный логгер ошибок
-    window.onerror = function(msg, url, line) {
-      const dbg = document.getElementById('debug-box');
-      if (dbg) {
-        dbg.style.display = 'block';
-        dbg.innerText = '⚠️ Ошибка: ' + msg + ' (линия ' + line + ')';
-      }
-      return false;
+    // 1. Дефолтное начальное слово «Привет!»
+    const DEFAULT_CARD = {
+      id: 1,
+      q: "Привет!",
+      a: "Привет! Нажми «➕ Добавить», чтобы добавить свои слова.",
+      group: "Общие",
+      count: 0,
+      wrongCount: 0
     };
 
-    // 2. Безопасный Telegram SDK
+    // 2. Инициализация SDK
     try {
       if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
@@ -374,24 +374,16 @@
       }
     } catch(e) {}
 
-    // 3. Данные по умолчанию
-    const defaultDeck = [
-      { id: 101, q: "Apple", a: "Яблоко", group: "Английский", count: 0, wrongCount: 0 },
-      { id: 102, q: "Algorithm", a: "Четкий набор инструкций", group: "Информатика", count: 0, wrongCount: 0 },
-      { id: 103, q: "QuickSort", a: "Быстрая сортировка O(n log n)", group: "Информатика", count: 0, wrongCount: 0 }
-    ];
-
-    // Хранилище в оперативной памяти (fallback)
     const memStore = {};
 
-    function getStorage(key, fallback) {
+    function getStorage(key) {
       try {
         if (window.localStorage) {
           const val = localStorage.getItem(key);
           if (val) return JSON.parse(val);
         }
       } catch (e) {}
-      return memStore[key] !== undefined ? memStore[key] : fallback;
+      return memStore[key] || null;
     }
 
     function setStorage(key, val) {
@@ -408,116 +400,16 @@
     let currentIndex = 0;
     let isFlipped = false;
 
+    // Гарантируем наличие хотя бы одного слова
+    function ensureMinDeck() {
+      if (!Array.isArray(deck) || deck.length === 0) {
+        deck = [ JSON.parse(JSON.stringify(DEFAULT_CARD)) ];
+      }
+    }
+
     function initDeck() {
-      const loaded = getStorage('my_flashcards', null);
+      const loaded = getStorage('my_flashcards');
       if (Array.isArray(loaded) && loaded.length > 0) {
-        deck = loaded.map((item, idx) => ({
-          id: item.id || (Date.now() + idx),
-          q: String(item.q || "Без вопроса"),
-          a: String(item.a || "Без ответа"),
-          group: String(item.group || "Общие"),
-          count: typeof item.count === 'number' ? item.count : 0,
-          wrongCount: typeof item.wrongCount === 'number' ? item.wrongCount : 0
-        }));
+        deck = loaded;
       } else {
-        deck = JSON.parse(JSON.stringify(defaultDeck));
-      }
-      saveDeck();
-    }
-
-    function saveDeck() {
-      setStorage('my_flashcards', deck);
-      updateCounters();
-      updateGroupSelects();
-    }
-
-    function getGroups() {
-      const set = new Set(["Общие", "Английский", "Информатика"]);
-      deck.forEach(c => { if (c.group) set.add(c.group); });
-      return Array.from(set);
-    }
-
-    function updateGroupSelects() {
-      const groups = getGroups();
-      
-      const filterSelect = document.getElementById('study-group-filter');
-      if (filterSelect) {
-        const prevVal = filterSelect.value || 'all';
-        filterSelect.innerHTML = '<option value="all">Все группы</option>';
-        groups.forEach(g => {
-          filterSelect.innerHTML += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`;
-        });
-        filterSelect.value = groups.includes(prevVal) ? prevVal : 'all';
-        currentStudyGroup = filterSelect.value;
-      }
-
-      const addSelect = document.getElementById('add-group-select');
-      if (addSelect) {
-        const prevAddVal = addSelect.value;
-        addSelect.innerHTML = '';
-        groups.forEach(g => {
-          addSelect.innerHTML += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`;
-        });
-        addSelect.innerHTML += '<option value="__new__">+ Создать новую группу...</option>';
-        if (prevAddVal && (groups.includes(prevAddVal) || prevAddVal === '__new__')) {
-          addSelect.value = prevAddVal;
-        }
-      }
-    }
-
-    function updateCounters() {
-      const doneCards = deck.filter(c => c.count > 0);
-      const elTotal = document.getElementById('count-total');
-      const elDone = document.getElementById('count-done');
-      if (elTotal) elTotal.innerText = deck.length;
-      if (elDone) elDone.innerText = doneCards.length;
-    }
-
-    function getFilteredDeck() {
-      if (currentStudyGroup === 'all') return deck;
-      return deck.filter(c => c.group === currentStudyGroup);
-    }
-
-    function changeStudyGroup() {
-      const sel = document.getElementById('study-group-filter');
-      if (sel) currentStudyGroup = sel.value;
-      currentIndex = 0;
-      renderCard();
-    }
-
-    function switchTab(tab) {
-      const btns = {
-        study: document.getElementById('btn-tab-study'),
-        add: document.getElementById('btn-tab-add'),
-        list: document.getElementById('btn-tab-list'),
-        completed: document.getElementById('btn-tab-completed')
-      };
-
-      const views = {
-        study: document.getElementById('study-view'),
-        add: document.getElementById('add-view'),
-        list: document.getElementById('list-view'),
-        completed: document.getElementById('completed-view')
-      };
-
-      Object.values(btns).forEach(b => b && b.classList.remove('active'));
-      Object.values(views).forEach(v => v && v.classList.remove('active'));
-
-      if (btns[tab]) btns[tab].classList.add('active');
-      if (views[tab]) views[tab].classList.add('active');
-
-      if (tab === 'study') renderCard();
-      else if (tab === 'list') renderList();
-      else if (tab === 'completed') renderCompleted();
-    }
-
-    function renderCard() {
-      const filtered = getFilteredDeck();
-
-      const elText = document.getElementById('card-text');
-      const elHint = document.getElementById('hint');
-      const elBadge = document.getElementById('card-badge');
-      const elTag = document.getElementById('card-group-tag');
-      const elBtns = document.getElementById('btn-group');
-
-      if (!elText) return
+        deck
