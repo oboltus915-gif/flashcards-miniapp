@@ -217,4 +217,16 @@
   <!-- Вкладка 2: Добавление -->
   <div id="add-view" class="view">
     <div class="input-group">
-      <label style="font-size: 11px; font-weight: 600; color: var(--hint-color);">Г
+      <label style="font-size: 11px; font-weight: 600; color: var(--hint-color);">Группа по умолчанию:</label>
+      <select id="add-group-select" onchange="toggleNewGroupInput()">
+        <option value="Общие">Общие</option>
+        <option value="Английский">Английский</option>
+        <option value="Информатика">Информатика</option>
+        <option value="__new__">+ Создать новую группу...</option>
+      </select>
+      <input type="text" id="new-group-input" placeholder="Название новой группы" style="display:none;" />
+
+      <label style="font-size: 11px; color: var(--hint-color); margin-top: 4px;">
+        Ввод слов (построчно):<br><b>Слово : Перевод</b> &nbsp;или&nbsp; <b>Группа : Слово : Перевод</b>
+      </label>
+      <textarea id="input-batch" rows="6" placeholder="Apple : Яблоко&#10;Cat : К
