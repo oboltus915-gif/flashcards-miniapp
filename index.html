@@ -42,7 +42,7 @@
 
     .nav-btn {
       flex: 1;
-      padding: 10px 4px;
+      padding: 10px 2px;
       border: none;
       border-radius: 10px;
       background: var(--card-bg);
@@ -68,7 +68,7 @@
     }
 
     .view.active {
-      display: flex;
+      display: flex !important;
     }
 
     .filter-bar {
@@ -280,10 +280,10 @@
 
   <!-- Навигация -->
   <div class="nav">
-    <button class="nav-btn active" id="btn-tab-study" onclick="switchTab('study')">🎴 Учить</button>
-    <button class="nav-btn" id="btn-tab-add" onclick="switchTab('add')">➕ Добавить</button>
-    <button class="nav-btn" id="btn-tab-list" onclick="switchTab('list')">📚 Всего (<span id="count-total">0</span>)</button>
-    <button class="nav-btn" id="btn-tab-completed" onclick="switchTab('completed')">📊 Стата (<span id="count-done">0</span>)</button>
+    <button class="nav-btn active" data-tab="study" onclick="switchTab('study')">🎴 Учить</button>
+    <button class="nav-btn" data-tab="add" onclick="switchTab('add')">➕ Добавить</button>
+    <button class="nav-btn" data-tab="list" onclick="switchTab('list')">📚 Всего (<span id="count-total">0</span>)</button>
+    <button class="nav-btn" data-tab="completed" onclick="switchTab('completed')">📊 Стата (<span id="count-done">0</span>)</button>
   </div>
 
   <!-- Вкладка 1: Обучение -->
@@ -356,7 +356,6 @@
   </div>
 
   <script>
-    // 1. Дефолтное начальное слово «Привет!»
     const DEFAULT_CARD = {
       id: 1,
       q: "Привет!",
@@ -366,7 +365,6 @@
       wrongCount: 0
     };
 
-    // 2. Инициализация SDK
     try {
       if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
@@ -400,7 +398,6 @@
     let currentIndex = 0;
     let isFlipped = false;
 
-    // Гарантируем наличие хотя бы одного слова
     function ensureMinDeck() {
       if (!Array.isArray(deck) || deck.length === 0) {
         deck = [ JSON.parse(JSON.stringify(DEFAULT_CARD)) ];
@@ -412,4 +409,240 @@
       if (Array.isArray(loaded) && loaded.length > 0) {
         deck = loaded;
       } else {
-        deck
+        deck = [ JSON.parse(JSON.stringify(DEFAULT_CARD)) ];
+      }
+      ensureMinDeck();
+      saveDeck();
+    }
+
+    function saveDeck() {
+      ensureMinDeck();
+      setStorage('my_flashcards', deck);
+      updateCounters();
+      updateGroupSelects();
+    }
+
+    function getGroups() {
+      const set = new Set(["Общие", "Английский", "Информатика"]);
+      deck.forEach(c => { if (c.group) set.add(c.group); });
+      return Array.from(set);
+    }
+
+    function updateGroupSelects() {
+      const groups = getGroups();
+      
+      const filterSelect = document.getElementById('study-group-filter');
+      if (filterSelect) {
+        const prevVal = filterSelect.value || 'all';
+        filterSelect.innerHTML = '<option value="all">Все группы</option>';
+        groups.forEach(g => {
+          filterSelect.innerHTML += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`;
+        });
+        filterSelect.value = groups.includes(prevVal) ? prevVal : 'all';
+        currentStudyGroup = filterSelect.value;
+      }
+
+      const addSelect = document.getElementById('add-group-select');
+      if (addSelect) {
+        const prevAddVal = addSelect.value;
+        addSelect.innerHTML = '';
+        groups.forEach(g => {
+          addSelect.innerHTML += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`;
+        });
+        addSelect.innerHTML += '<option value="__new__">+ Создать новую группу...</option>';
+        if (prevAddVal && (groups.includes(prevAddVal) || prevAddVal === '__new__')) {
+          addSelect.value = prevAddVal;
+        }
+      }
+    }
+
+    function updateCounters() {
+      const doneCards = deck.filter(c => c.count > 0);
+      const elTotal = document.getElementById('count-total');
+      const elDone = document.getElementById('count-done');
+      if (elTotal) elTotal.innerText = deck.length;
+      if (elDone) elDone.innerText = doneCards.length;
+    }
+
+    function getFilteredDeck() {
+      if (currentStudyGroup === 'all') return deck;
+      return deck.filter(c => c.group === currentStudyGroup);
+    }
+
+    function changeStudyGroup() {
+      const sel = document.getElementById('study-group-filter');
+      if (sel) currentStudyGroup = sel.value;
+      currentIndex = 0;
+      renderCard();
+    }
+
+    // Универсальное переключение вкладок
+    function switchTab(tabName) {
+      const navBtns = document.querySelectorAll('.nav-btn');
+      const views = document.querySelectorAll('.view');
+
+      navBtns.forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabName) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      views.forEach(view => {
+        if (view.id === tabName + '-view') {
+          view.classList.add('active');
+        } else {
+          view.classList.remove('active');
+        }
+      });
+
+      if (tabName === 'study') renderCard();
+      else if (tabName === 'list') renderList();
+      else if (tabName === 'completed') renderCompleted();
+    }
+
+    function renderCard() {
+      ensureMinDeck();
+      const filtered = getFilteredDeck();
+
+      const elText = document.getElementById('card-text');
+      const elHint = document.getElementById('hint');
+      const elBadge = document.getElementById('card-badge');
+      const elTag = document.getElementById('card-group-tag');
+      const elBtns = document.getElementById('btn-group');
+
+      if (!elText) return;
+
+      if (filtered.length === 0) {
+        elText.innerText = "Нет слов в группе";
+        if (elHint) elHint.innerText = "Выберите 'Все группы' или добавьте новые слова";
+        if (elBadge) elBadge.style.display = 'none';
+        if (elTag) elTag.style.display = 'none';
+        if (elBtns) elBtns.style.display = 'none';
+        return;
+      }
+
+      if (currentIndex >= filtered.length) {
+        currentIndex = 0;
+      }
+
+      const card = filtered[currentIndex];
+      isFlipped = false;
+
+      if (elBadge) {
+        elBadge.style.display = 'block';
+        elBadge.innerText = `✓ ${card.count} | ✗ ${card.wrongCount}`;
+      }
+
+      if (elTag) {
+        elTag.style.display = 'block';
+        elTag.innerText = card.group;
+      }
+
+      elText.innerText = card.q;
+      if (elHint) elHint.innerText = "Нажми, чтобы перевернуть";
+      if (elBtns) elBtns.style.display = 'none';
+    }
+
+    function flipCard() {
+      const filtered = getFilteredDeck();
+      if (filtered.length === 0 || isFlipped) return;
+
+      isFlipped = true;
+      document.getElementById('card-text').innerText = filtered[currentIndex].a;
+      document.getElementById('hint').innerText = "Оцени результат:";
+      document.getElementById('btn-group').style.display = 'flex';
+    }
+
+    function processAnswer(remembered) {
+      const filtered = getFilteredDeck();
+      if (filtered.length === 0) return;
+
+      const currentCard = filtered[currentIndex];
+      const realIndex = deck.findIndex(c => c.id === currentCard.id);
+
+      if (realIndex !== -1) {
+        if (remembered) {
+          deck[realIndex].count += 1;
+          currentIndex++;
+        } else {
+          deck[realIndex].wrongCount += 1;
+          const item = deck.splice(realIndex, 1)[0];
+          deck.push(item);
+        }
+        saveDeck();
+      }
+
+      renderCard();
+    }
+
+    function toggleNewGroupInput() {
+      const select = document.getElementById('add-group-select');
+      const input = document.getElementById('new-group-input');
+      if (select && input) {
+        input.style.display = (select.value === '__new__') ? 'block' : 'none';
+      }
+    }
+
+    function addCardsBatch() {
+      const textEl = document.getElementById('input-batch');
+      if (!textEl) return;
+      const text = textEl.value.trim();
+      let defaultGroup = document.getElementById('add-group-select').value;
+
+      if (defaultGroup === '__new__') {
+        defaultGroup = document.getElementById('new-group-input').value.trim() || "Общие";
+      }
+
+      if (!text) {
+        showStatus("Введите хотя бы одну строку", false);
+        return;
+      }
+
+      const lines = text.split('\n');
+      let addedCount = 0;
+      let dupCount = 0;
+
+      lines.forEach(line => {
+        const parts = line.split(':').map(p => p.trim()).filter(Boolean);
+        let group = defaultGroup;
+        let q = "";
+        let a = "";
+
+        if (parts.length === 2) {
+          q = parts[0];
+          a = parts[1];
+        } else if (parts.length >= 3) {
+          group = parts[0];
+          q = parts[1];
+          a = parts.slice(2).join(':');
+        }
+
+        if (q && a) {
+          const exists = deck.some(c => c.q.toLowerCase() === q.toLowerCase() && c.group.toLowerCase() === group.toLowerCase());
+          if (!exists) {
+            deck.push({
+              id: Date.now() + Math.random(),
+              q: q,
+              a: a,
+              group: group,
+              count: 0,
+              wrongCount: 0
+            });
+            addedCount++;
+          } else {
+            dupCount++;
+          }
+        }
+      });
+
+      saveDeck();
+      textEl.value = '';
+      if (document.getElementById('add-group-select').value === '__new__') {
+        document.getElementById('new-group-input').value = '';
+      }
+
+      let msg = `Добавлено: ${addedCount}`;
+      if (dupCount > 0) msg += ` (Пропущено повторов: ${dupCount})`;
+      show
