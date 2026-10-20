@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Запоминалки</title>
+  <title>СловоЗапоминатель</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -131,15 +131,16 @@
     .card-title { font-size: 22px; font-weight: 700; word-break: break-word; margin-top: 12px; }
     .hint { font-size: 13px; color: var(--hint-color); margin-top: 16px; }
 
-    .btn-group { display: flex; gap: 12px; margin-top: 16px; width: 100%; }
+    .btn-group { display: flex; gap: 8px; margin-top: 16px; width: 100%; }
 
     button.action-btn {
-      flex: 1; padding: 14px; border: none; border-radius: 12px;
-      font-size: 15px; font-weight: 600; cursor: pointer;
+      flex: 1; padding: 12px 4px; border: none; border-radius: 12px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
     }
 
     .btn-fail { background-color: #ef4444; color: #ffffff; }
     .btn-success { background-color: #22c55e; color: #ffffff; }
+    .btn-delete { background-color: #71717a; color: #ffffff; }
     .btn-primary { background-color: var(--btn-color); color: var(--btn-text); width: 100%; margin-top: 8px; }
 
     .input-group { width: 100%; display: flex; flex-direction: column; gap: 10px; }
@@ -208,8 +209,10 @@
       <div class="hint" id="hint">Нажми, чтобы перевернуть</div>
     </div>
 
+    <!-- 3 кнопки управления карточкой -->
     <div class="btn-group" id="btn-group" style="display: none;">
       <button class="action-btn btn-fail" id="btn-fail">Не помню</button>
+      <button class="action-btn btn-delete" id="btn-delete-current">🗑️ Удалить</button>
       <button class="action-btn btn-success" id="btn-success">Помню</button>
     </div>
   </div>
@@ -260,9 +263,17 @@
     };
 
     let deck = [];
+    let studyQueue = [];
     let currentStudyGroup = 'all';
     let currentIndex = 0;
     let isFlipped = false;
+
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      }
+    } catch(e) {}
 
     function escapeHtml(str) {
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -321,14 +332,35 @@
       }
     }
 
-    function getFilteredDeck() {
-      return currentStudyGroup === 'all' ? deck : deck.filter(c => c.group === currentStudyGroup);
+    // АЛГОРИТМ УМНОГО ПЕРЕМЕШИВАНИЯ (Взвешенный случайный выбор по количеству ошибок)
+    function generateStudyQueue() {
+      let filtered = currentStudyGroup === 'all' ? deck : deck.filter(c => c.group === currentStudyGroup);
+      let pool = [...filtered];
+      let weighted = [];
+
+      while (pool.length > 0) {
+        let weights = pool.map(c => 1 + ((c.wrongCount || 0) * 4));
+        let totalWeight = weights.reduce((a, b) => a + b, 0);
+        let randomNum = Math.random() * totalWeight;
+        let sum = 0;
+        let selectedIndex = 0;
+
+        for (let i = 0; i < pool.length; i++) {
+          sum += weights[i];
+          if (randomNum <= sum) {
+            selectedIndex = i;
+            break;
+          }
+        }
+        weighted.push(pool[selectedIndex]);
+        pool.splice(selectedIndex, 1);
+      }
+      studyQueue = weighted;
+      currentIndex = 0;
     }
 
     function renderCard() {
       ensureMinDeck();
-      const filtered = getFilteredDeck();
-
       const elText = document.getElementById('card-text');
       const elHint = document.getElementById('hint');
       const elBadge = document.getElementById('card-badge');
@@ -337,7 +369,11 @@
 
       if (!elText) return;
 
-      if (filtered.length === 0) {
+      if (!studyQueue || studyQueue.length === 0 || currentIndex >= studyQueue.length) {
+        generateStudyQueue();
+      }
+
+      if (studyQueue.length === 0) {
         elText.innerText = "Нет слов в группе";
         if (elHint) elHint.innerText = "Выберите 'Все группы' или добавьте новые слова";
         if (elBadge) elBadge.style.display = 'none';
@@ -346,8 +382,7 @@
         return;
       }
 
-      if (currentIndex >= filtered.length) currentIndex = 0;
-      const card = filtered[currentIndex];
+      const card = studyQueue[currentIndex];
       isFlipped = false;
 
       if (elBadge) {
@@ -364,182 +399,34 @@
     }
 
     function flipCard() {
-      const filtered = getFilteredDeck();
-      if (filtered.length === 0 || isFlipped) return;
+      if (studyQueue.length === 0 || isFlipped) return;
 
       isFlipped = true;
-      document.getElementById('card-text').innerText = filtered[currentIndex].a;
+      document.getElementById('card-text').innerText = studyQueue[currentIndex].a;
       document.getElementById('hint').innerText = "Оцени результат:";
       document.getElementById('btn-group').style.display = 'flex';
     }
 
     function processAnswer(remembered) {
-      const filtered = getFilteredDeck();
-      if (filtered.length === 0) return;
+      if (studyQueue.length === 0) return;
 
-      const currentCard = filtered[currentIndex];
+      const currentCard = studyQueue[currentIndex];
       const realIndex = deck.findIndex(c => c.id === currentCard.id);
 
       if (realIndex !== -1) {
         if (remembered) {
-          deck[realIndex].count += 1;
+          deck[realIndex].count = (deck[realIndex].count || 0) + 1;
           currentIndex++;
         } else {
-          deck[realIndex].wrongCount += 1;
-          const item = deck.splice(realIndex, 1)[0];
-          deck.push(item);
+          deck[realIndex].wrongCount = (deck[realIndex].wrongCount || 0) + 1;
+          const item = studyQueue.splice(currentIndex, 1)[0];
+          studyQueue.push(item);
         }
         saveDeck();
       }
       renderCard();
     }
 
-    function switchTab(tabName) {
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
-      });
-
-      document.querySelectorAll('.view').forEach(view => {
-        view.classList.toggle('active', view.id === tabName + '-view');
-      });
-
-      if (tabName === 'study') renderCard();
-      else if (tabName === 'list') renderList();
-      else if (tabName === 'completed') renderCompleted();
-    }
-
-    function renderList() {
-      const container = document.getElementById('card-list');
-      if (!container) return;
-      container.innerHTML = deck.map(item => `
-        <div class="list-item">
-          <div class="list-item-info">
-            <div class="list-item-q">${escapeHtml(item.q)}</div>
-            <div class="list-item-a">${escapeHtml(item.a)}</div>
-            <div class="list-item-meta"><span class="tag">${escapeHtml(item.group)}</span></div>
-          </div>
-          <button class="delete-btn" data-id="${item.id}">Удалить</button>
-        </div>
-      `).join('');
-    }
-
-    function renderCompleted() {
-      const container = document.getElementById('completed-list');
-      if (!container) return;
-      document.getElementById('stat-total').innerText = deck.length;
-      document.getElementById('stat-done').innerText = deck.reduce((s, c) => s + c.count, 0);
-      document.getElementById('stat-wrong').innerText = deck.reduce((s, c) => s + c.wrongCount, 0);
-
-      container.innerHTML = [...deck].sort((a,b) => b.wrongCount - a.wrongCount).map(item => `
-        <div class="list-item">
-          <div class="list-item-info">
-            <div class="list-item-q">${escapeHtml(item.q)}</div>
-            <div class="list-item-a">${escapeHtml(item.a)}</div>
-          </div>
-          <div style="font-size: 12px; font-weight: 700; text-align: right;">
-            <span style="color: #22c55e;">✓ ${item.count}</span><br>
-            <span style="color: #ef4444;">✗ ${item.wrongCount}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function addCardsBatch() {
-      const textEl = document.getElementById('input-batch');
-      if (!textEl) return;
-      const text = textEl.value.trim();
-      let defaultGroup = document.getElementById('add-group-select').value;
-
-      if (defaultGroup === '__new__') {
-        defaultGroup = document.getElementById('new-group-input').value.trim() || "Общие";
-      }
-
-      if (!text) return;
-
-      const lines = text.split('\n');
-      lines.forEach(line => {
-        const parts = line.split(':').map(p => p.trim()).filter(Boolean);
-        let group = defaultGroup, q = "", a = "";
-
-        if (parts.length === 2) { q = parts[0]; a = parts[1]; }
-        else if (parts.length >= 3) { group = parts[0]; q = parts[1]; a = parts.slice(2).join(':'); }
-
-        if (q && a) {
-          deck.push({ id: Date.now() + Math.random(), q, a, group, count: 0, wrongCount: 0 });
-        }
-      });
-
-      saveDeck();
-      textEl.value = '';
-      switchTab('study');
-    }
-
-    // Привязываем события через addEventListener (без inline onclick)
-    function setupEventListeners() {
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const tab = btn.getAttribute('data-tab');
-          switchTab(tab);
-        });
-      });
-
-      const cardBox = document.getElementById('card-box');
-      if (cardBox) cardBox.addEventListener('click', flipCard);
-
-      const btnFail = document.getElementById('btn-fail');
-      if (btnFail) btnFail.addEventListener('click', () => processAnswer(false));
-
-      const btnSuccess = document.getElementById('btn-success');
-      if (btnSuccess) btnSuccess.addEventListener('click', () => processAnswer(true));
-
-      const studyFilter = document.getElementById('study-group-filter');
-      if (studyFilter) {
-        studyFilter.addEventListener('change', (e) => {
-          currentStudyGroup = e.target.value;
-          currentIndex = 0;
-          renderCard();
-        });
-      }
-
-      const addSelect = document.getElementById('add-group-select');
-      if (addSelect) {
-        addSelect.addEventListener('change', (e) => {
-          const newInput = document.getElementById('new-group-input');
-          if (newInput) newInput.style.display = (e.target.value === '__new__') ? 'block' : 'none';
-        });
-      }
-
-      const btnSave = document.getElementById('btn-save');
-      if (btnSave) btnSave.addEventListener('click', addCardsBatch);
-
-      const listContainer = document.getElementById('card-list');
-      if (listContainer) {
-        listContainer.addEventListener('click', (e) => {
-          if (e.target && e.target.classList.contains('delete-btn')) {
-            const id = Number(e.target.getAttribute('data-id'));
-            if (deck.length <= 1) {
-              alert("Должно оставаться хотя бы одно слово!");
-              return;
-            }
-            deck = deck.filter(c => c.id !== id);
-            saveDeck();
-            renderList();
-          }
-        });
-      }
-    }
-
-    function run() {
-      initDeck();
-      setupEventListeners();
-      renderCard();
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', run);
-    } else {
-      run();
-    }
-  </script>
-</body>
-</html>
+    function deleteCurrentCard() {
+      if (deck.length <= 1) {
+        alert("В приложении должно оставаться
